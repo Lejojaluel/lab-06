@@ -20,29 +20,32 @@ int verbose = 0;
 /* Notes args start at [1] */
 
 void printUsage();
-bool validateBinary(unsigned long int);
+bool validateBinary(char *);
 bool validateDecimal(char *);
 void convertB2D(char *);
 void convertD2B(unsigned long);
+unsigned long power(int,int);
+void prettifyDec(unsigned long);
 
 int main(int argc, char *argv[])
 {
   char *ptr; 
   unsigned long unsignedLong;
-/*     int i;
-  printf("%d\n", argc);
-      for(i = 1; i < argc; i++)
-    {
-      printf("%s ", argv[i]);
-    }
-    printf("\n"); */
-
+  int b;
   if(argc != 4)
   {
     printf("ERROR: incorrect number of arguments\n");
     printUsage();
     return 1;
   }
+
+  /* Print out arguments */
+  
+  for(b = 0;b < argc; b++)
+  {
+    if(verbose) printf("%s ",argv[b]);
+  }
+  if(verbose)printf("\n");
   
 /* Parse 1st parameter */
 
@@ -60,6 +63,7 @@ int main(int argc, char *argv[])
   {
     printf("ERROR: argument 1 must be -b2d | -d2b\n");
     printUsage();  
+    return 1;
   }
 
   /* Parse 2nd Parameter */
@@ -72,6 +76,7 @@ int main(int argc, char *argv[])
   {
     printf("ERROR: argument 2 must be: -8 | -16 | -32 | -64\n");
     printUsage();
+    return 1;
   }
 
   /* Parsing 3rd Parameter */
@@ -79,7 +84,7 @@ int main(int argc, char *argv[])
   unsignedLong = strtoul(argv[3], &ptr, 10);
   if(b2dMode == 1)
   {
-    if(validateBinary(unsignedLong))
+    if(validateBinary(argv[3]))
     {
       if(verbose) printf("Valid Binary\n");
       convertB2D(argv[3]);
@@ -87,6 +92,7 @@ int main(int argc, char *argv[])
     {
       printf("ERROR: argument 3 is not a binary integer\n");
       printUsage();
+      return 1;
     }
   }
   else if (d2bMode == 1)
@@ -99,6 +105,7 @@ int main(int argc, char *argv[])
     {
       printf("ERROR: argument 3 is not a decimal integer\n");
       printUsage();
+      return 1;
     }
     
   }
@@ -106,20 +113,23 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-bool validateBinary(unsigned long num)
+bool validateBinary(char * num)
 {
-  int j, error;
-  if(verbose) printf("Validating that %lu is binary\n", num);
+  int j, error, len;
+  len = strlen(num);
+  if(verbose) printf("Validating that %s is binary\n", num);
   error = 0;
-  while(num != 0)
+  for(j = 0; j < len; j++)
   {
-    j = num%10;
-    if ((j != 1) && (j != 0))
+    if((num[j] == '1') || (num[j] == '0'))
+    {
+
+    }
+    else
     {
       error++;
-      break;
     }
-    num /= 10;
+    
   }
   return error > 0 ? false : true;
 }
@@ -141,9 +151,11 @@ bool validateDecimal(char * num)
 
 void convertB2D(char * num)
 {
-  int dec, total, len, i;
+  unsigned long total;
+  int len, i, pow;
   total = 0;
   len = strlen(num);
+  pow = len - 1;
   if(verbose) printf("Converting the string %s\n", num);
   /* Loop 6 times */
   for(i = 0; i < len; i++)
@@ -151,19 +163,38 @@ void convertB2D(char * num)
     /* printf("%c ", num[i]); */
     if(num[i] == '1')
     {
-      total = 2 * total;
-      dec = total + 1;
-      printf("\n1: %d\n", dec);
+      total = total + power(2,pow);
+      if(verbose)printf("\n1 %lu with pow:%d\n", total, pow);
     }
-    else
+    else if(num[i] == '0')
     {
-      total = 2 * total;
-      dec = total + 0;
-      printf("\n0: %d\n", dec);
+      if(verbose)printf("\n0: %lu\n", total);
     }
-    
+    pow--;
   }
-  printf("\n%d\n", dec);
+  prettifyDec(total);
+}
+
+void prettifyDec(unsigned long total)
+{
+  int numSpaces,i;
+  if( total < 1000 )
+  {
+    if(total < 100)
+    {
+      if(total < 10)
+      {
+        numSpaces = 2;
+      }
+      numSpaces = 2;
+    }
+    numSpaces = 0;
+  }
+  for(i = 0; i < numSpaces; i++)
+  {
+    printf(" ");
+  }
+  printf("%lu\n", total);
 }
 
 void convertD2B(unsigned long num)
@@ -184,7 +215,7 @@ void convertD2B(unsigned long num)
       printf("0");
       count++;
     }
-    if(count == 4)
+    if(count == 4 && i != 0)
     {
       printf(" ");
       count = 0;
@@ -192,6 +223,19 @@ void convertD2B(unsigned long num)
   }
 
   printf("\n");
+}
+
+unsigned long power(int base, int exponent)
+{
+  unsigned long result=1;
+  int i;
+  if(verbose) printf("getting power of %d^%d\n", base, exponent);
+  for (i = 0; exponent>0; exponent--)
+  {
+    i++;
+    result = result * base; 
+  }
+  return result;
 }
 
 void printUsage()

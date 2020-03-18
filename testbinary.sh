@@ -1,5 +1,4 @@
 #!/bin/bash
-make
 ./binary -d2b -8 12
 ./binary -d2b -8 127
 ./binary -d2b -8 128
